@@ -11,14 +11,14 @@ until i figure out how to make this run from a server, here's a guide on how to 
 
 5. place downloaded footage in same directory as your project, and rename it to `footage.mp4`
 
-6. put in your openai and groq api keys here
+6. put in your openai and groq api keys in exp.py (lines 14-15)
 
-`client = OpenAI(api_key="YOUR OPENAI API KEY HERE")`
-`groqC = Groq(api_key="YOUR GROQ API KEY HERE")`
+    `client = OpenAI(api_key="YOUR OPENAI API KEY HERE")`
+    `groqC = Groq(api_key="YOUR GROQ API KEY HERE")`
 
-or you could use the same openai key and just change the model in gen_tts() function
+    or you could use the same openai key and just change the model in gen_tts() function (line 22)
 
-from `model="llama3-70b-8192"` to `model="gpt-3.5-turbo"` or any openai model for that matter
+    from `model="llama3-70b-8192"` to `model="gpt-3.5-turbo"` or any openai model for that matter
 
 7. download imagemagick 
     - wsl/linux: https://gist.github.com/cuuupid/963db645047597723956af13ab87b73a
