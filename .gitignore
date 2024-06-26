@@ -1,0 +1,10 @@
+.env
+transcript.mp3
+output_video.mp4
+prompt.txt
+data.json
+\lib
+\include
+\bin
+footage.mp4
+.gitignore
