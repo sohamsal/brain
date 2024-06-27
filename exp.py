@@ -1,5 +1,5 @@
 from openai import OpenAI
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, CompositeAudioClip
 import json
 import matplotlib.font_manager as fm
 from groq import Groq
@@ -23,20 +23,20 @@ def gen_tts():
     messages=[
         {"role": "system", "content": """You are a helpful content creator assistant.
                                       Your only role is to come up with human-sounding transcripts for a video given a large chunk of text, use uncomplicated language and don't paraphrase.
+                                      Always start your response with Hello, then get into the transcript
                                       Based on the essay provided to you, pick a random chunk of the essay without changing the original text.
                                       Come up with a transcript that reiterates that chunk of the essay.
-                                      Set a premise of what the video is going to be about first.
+                                      Integrate who wrote this essay into the transcript, smoothly.
                                       Don't blabber; just straight up get into the textual part of the essay.
                                       Don't leave out much detail; add more text and as few cliffhangers as possible.
-                                      End your response with a thought provoking question.
                                       Only use the text provided to you.
-                                      Don't mention that this is a transcript.
+                                      Don't return any text that tells the user that this is a transcript.
                                       Limit your response to 4096 characters.
         """},
-        {"role": "user", "content": f"here's the text: {essay}"},
+        {"role": "user", "content": f"here's the essay: {essay}"},
     ]
     )
-
+    # print(response.choices[0].message.content)
     speechResponse = client.audio.speech.create(
         model="tts-1",
         voice="onyx",
@@ -65,15 +65,18 @@ def gen_transcriptions():
 
 def align_video_audio():
     video = VideoFileClip("footage.mp4")
-    audio = AudioFileClip("transcript.mp3") 
+    audio = AudioFileClip("transcript.mp3")
+    bg_music = AudioFileClip("minecraft_bg.mp3")
 
     audio_length_sec = audio.duration
+    bg_music = bg_music.subclip(0, audio_length_sec).volumex(0.1) 
 
-    start_time = 0  # start time in seconds
-    end_time = audio_length_sec  # end time in seconds
+    # Combine main audio with background music
+    combined_audio = CompositeAudioClip([audio, bg_music])
 
-    trimmed_video = video.subclip(start_time, end_time)
-    trimmed_video = trimmed_video.set_audio(audio)
+    trimmed_video = video.subclip(0, audio_length_sec)
+    trimmed_video = trimmed_video.set_audio(combined_audio)
+
     return trimmed_video
 
 
@@ -130,12 +133,11 @@ def generate_captions():
     return caption_clips
 
 def crop_render():
+    #mobile resolution figured out through resizing rectangles in figma
     x1 = 600    # x-coordinate of the top-left corner
     y1 = 0      # y-coordinate of the top-left corner
     x2 = 1120   # x-coordinate of the bottom-right corner
     y2 = 1080   # y-coordinate of the bottom-right corner
-
-
 
     trimmed = align_video_audio()
     cropped = trimmed.crop(x1=x1, y1=y1, x2=x2, y2=y2)
@@ -146,8 +148,8 @@ def crop_render():
 
 
 def main():
-    gen_tts() #generates text + tts for text
-    gen_transcriptions() #timestamp transcription
+    #gen_tts() #generates text + tts for text
+    #gen_transcriptions() #timestamp transcription
     crop_render() #crops vid and renders with captions
 
 if __name__ == "__main__":
