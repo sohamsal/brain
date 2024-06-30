@@ -148,8 +148,8 @@ def crop_render():
 
 
 def main():
-    #gen_tts() #generates text + tts for text
-    #gen_transcriptions() #timestamp transcription
+    gen_tts() #generates text + tts for text
+    gen_transcriptions() #timestamp transcription
     crop_render() #crops vid and renders with captions
 
 if __name__ == "__main__":
