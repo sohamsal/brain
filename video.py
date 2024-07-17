@@ -3,19 +3,21 @@ from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVide
 import json
 import matplotlib.font_manager as fm
 from groq import Groq
+from pydantic import BaseModel
+import instructor
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-font_path = 'komika.ttf'
+font_path = 'video_assets/komika.ttf'
 prop = fm.FontProperties(fname=font_path)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  #replace with your own openai api key
 groqC = Groq(api_key=os.getenv("GROQ_API_KEY"))  #replace with your own groq api key
 
 def gen_tts():
-    with open("essay.txt", 'rb') as f:
+    with open("video_assets/essay.txt", 'rb') as f:
         essay = f.read()
 
     response = groqC.chat.completions.create(
@@ -37,17 +39,36 @@ def gen_tts():
     ]
     )
     # print(response.choices[0].message.content)
+
     speechResponse = client.audio.speech.create(
         model="tts-1",
         voice="onyx",
         input=f"{response.choices[0].message.content}",
     )
 
-    speechResponse.stream_to_file("transcript.mp3")
+    speechResponse.stream_to_file("video_assets/transcript.mp3")
+
+
+# def generate_img_times(transcript):
+#     class ImageExtract(BaseModel):
+#         image_path: str
+#         start: float
+#         end: float
+    
+#     client = instructor.from_groq(client, mode=instructor.Mode.TOOLS)
+
+#     img: ImageExtract = client.chat.completions.create(
+#         model="llama3-70b-8192",
+#         response_model=ImageExtract,
+#         messages=[
+#             {"role": "system", "content": """Pick 5 words from the transcript that can be well-represented by stock images and provide the start and end times of the video where these words are spoken."""},
+#             {"role": "user", "content": transcript.words}
+#         ]
+#     )
 
 
 def gen_transcriptions():
-    audio_file = open("transcript.mp3", "rb")
+    audio_file = open("video_assets/transcript.mp3", "rb")
 
     transcript = client.audio.transcriptions.create(
         file=audio_file,
@@ -55,18 +76,18 @@ def gen_transcriptions():
         response_format="verbose_json",
         timestamp_granularities=["word"],
     )
-
+    # generate_img_times(transcript)
     print("transcription complete")
 
-    json_file = "data.json"
+    json_file = "json_data/transcript.json"
     with open(json_file, 'w') as f:
         json.dump(transcript.words, f, indent=4)
 
 
 def align_video_audio():
-    video = VideoFileClip("footage.mp4")
-    audio = AudioFileClip("transcript.mp3")
-    bg_music = AudioFileClip("minecraft_bg.mp3")
+    video = VideoFileClip("video_assets/footage.mp4")
+    audio = AudioFileClip("video_assets/transcript.mp3")
+    bg_music = AudioFileClip("video_assets/minecraft_bg.mp3")
 
     audio_length_sec = audio.duration
     bg_music = bg_music.subclip(0, audio_length_sec).volumex(0.1) 
@@ -116,10 +137,17 @@ def group_words(segments, max_length):
 
 def generate_captions():
     caption_clips = []
-    with open ("data.json", "r") as f:
+    with open ("json_data/transcript.json", "r") as f:
         segment_data = json.load(f)
 
     grouped_segments = group_words(segment_data, 10)
+
+    with open ("json_data/filtered_ungrouped.json", "r") as f:
+        updated_data = json.load(f)
+    
+    fg = group_words(updated_data, 10)
+    with open ("json_data/filtered_grouped.json", "w") as f:
+        json.dump(fg, f, indent=4)
 
     for group in grouped_segments:
         text = ' '.join(segment['word'] for segment in group)
