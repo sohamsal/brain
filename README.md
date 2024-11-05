@@ -1,4 +1,6 @@
 # brain
+here's an example: https://twitter.com/sohamsal/status/1806161229855044080
+
 until i figure out how to make this run from a server, here's a guide on how to run this locally:
 
 1. download free for personal/commerical-use subway surfers/minecraft parkour footage from youtube. [cobalt.tools](https://cobalt.tools) is a great way to download videos without ads
