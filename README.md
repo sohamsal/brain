@@ -1,5 +1,5 @@
 # brain
-here's an example: https://twitter.com/sohamsal/status/1806161229855044080
+here's a demo: https://twitter.com/sohamsal/status/1806161229855044080
 
 until i figure out how to make this run from a server, here's a guide on how to run this locally:
 
